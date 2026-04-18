@@ -1,25 +1,25 @@
-const YOUTUBE_BASE_VIDEO_URL = 'https://www.youtube.com/watch?v=';
-const IFRAME_API_URL = 'https://www.youtube.com/iframe_api';
+const YOUTUBE_BASE_VIDEO_URL = "https://www.youtube.com/watch?v=";
+const IFRAME_API_URL = "https://www.youtube.com/iframe_api";
 const BUFFERING_TIMEOUT = 3500;
-const CHANNELS_ENDPOINT = '/api/channels';
-const CURRENT_VIDEO_ENDPOINT = '/api/current-video';
-const INVALIDATE_VIDEO_ENDPOINT = '/api/invalidate-video';
-const LOAD_DEFAULTS_ENDPOINT = '/api/load-defaults';
+const CHANNELS_ENDPOINT = "/api/channels";
+const CURRENT_VIDEO_ENDPOINT = "/api/current-video";
+const INVALIDATE_VIDEO_ENDPOINT = "/api/invalidate-video";
+const LOAD_DEFAULTS_ENDPOINT = "/api/load-defaults";
 const VOLUME_STEPS = 5;
 const VOLUME_BAR_TIMEOUT = 2000;
 const CHANNEL_NAME_TIMEOUT = 3000;
 const INTERVAL_CHECK_MS = 1000;
 
 const ICONS = {
-  power: '/assets/icons/power.svg',
-  volume_muted: '/assets/icons/volume_muted.svg',
-  volume_high: '/assets/icons/volume_high.svg',
-  expand: '/assets/icons/expand.svg',
-  contract: '/assets/icons/contract.svg'
+  power: "/assets/icons/power.svg",
+  volume_muted: "/assets/icons/volume_muted.svg",
+  volume_high: "/assets/icons/volume_high.svg",
+  expand: "/assets/icons/expand.svg",
+  contract: "/assets/icons/contract.svg",
 };
 
 const loadYouTubeAPI = (onReady) => {
-  const tag = document.createElement('script');
+  const tag = document.createElement("script");
   tag.src = IFRAME_API_URL;
   document.head.appendChild(tag);
   window.onYouTubeIframeAPIReady = onReady;
@@ -27,12 +27,13 @@ const loadYouTubeAPI = (onReady) => {
 
 const initializePlayer = (playerElementId, onReady, onStateChange, onError) => {
   return new YT.Player(playerElementId, {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     autoplay: 1,
     events: { onReady, onStateChange, onError },
     playerVars: {
       mute: 1,
+      cc_load_policy: 1,
       controls: 0,
       modestbranding: 1,
       disablekb: 1,
@@ -41,8 +42,8 @@ const initializePlayer = (playerElementId, onReady, onStateChange, onError) => {
       rel: 0,
       enablejsapi: 1,
       autoplay: 1,
-      showinfo: 0
-    }
+      showinfo: 0,
+    },
   });
 };
 
@@ -54,7 +55,7 @@ const fetchChannels = async () => {
 
 const fetchCurrentVideo = async (channelId, videoId) => {
   const url = `${CURRENT_VIDEO_ENDPOINT}?channel-id=${channelId}${
-    videoId ? `&video-id=${videoId}` : ''
+    videoId ? `&video-id=${videoId}` : ""
   }`;
   const res = await fetch(url);
   const data = await res.json();
@@ -64,7 +65,7 @@ const fetchCurrentVideo = async (channelId, videoId) => {
 const handleUnavailableVideo = async (state) => {
   const url = `${INVALIDATE_VIDEO_ENDPOINT}?video-id=${state.currentVideo.id}`;
   const res = await fetch(url, {
-    method: 'DELETE'
+    method: "DELETE",
   });
   const data = await res.json();
 
@@ -76,11 +77,11 @@ const handleUnavailableVideo = async (state) => {
 };
 
 const showBuffering = () => {
-  document.querySelector('#buffer-gif')?.classList.add('active');
+  document.querySelector("#buffer-gif")?.classList.add("active");
 };
 
 const hideBuffering = () => {
-  document.querySelector('#buffer-gif')?.classList.remove('active');
+  document.querySelector("#buffer-gif")?.classList.remove("active");
 };
 
 const deactiveBuffering = (state) => {
@@ -93,11 +94,11 @@ const deactiveBuffering = (state) => {
 
   setTimeout(() => {
     hideBuffering();
-    if (shouldUnmute) {
-      player.unMute();
-      state.isMuted = false;
-    }
-    setControlIcon('control-power', ICONS.power, false);
+
+    player.unMute();
+    state.isMuted = false;
+
+    setControlIcon("control-power", ICONS.power, false);
   }, BUFFERING_TIMEOUT);
 };
 
@@ -105,67 +106,67 @@ const setControlIcon = (iconId, iconSrc, isActive) => {
   const iconElement = document.querySelector(`#${iconId} .control-icon`);
   if (iconElement) {
     iconElement.src = iconSrc;
-    iconElement.classList.toggle('red', isActive);
+    iconElement.classList.toggle("red", isActive);
   }
 };
 
 const toggleMute = (player, isMuted) => {
-  player[isMuted ? 'unMute' : 'mute']();
+  player[isMuted ? "unMute" : "mute"]();
   setControlIcon(
-    'control-mute',
+    "control-mute",
     isMuted ? ICONS.volume_high : ICONS.volume_muted,
-    !isMuted
+    !isMuted,
   );
   return !isMuted;
 };
 
 const updateVideoLink = (state) => {
-  const videoLinkContainer = document.querySelector('#video-link');
-  const videoLinkTitle = document.querySelector('#video-link-title');
+  const videoLinkContainer = document.querySelector("#video-link");
+  const videoLinkTitle = document.querySelector("#video-link-title");
 
   if (state.currentVideoName) {
     videoLinkTitle.innerHTML = state.currentVideoName;
-    videoLinkContainer.classList.add('active');
+    videoLinkContainer.classList.add("active");
   } else {
-    videoLinkContainer.classList.remove('active');
+    videoLinkContainer.classList.remove("active");
   }
 };
 
 const updateVolumeBar = (currentVolume) => {
-  const volumeBar = document.querySelector('#volume-bar');
+  const volumeBar = document.querySelector("#volume-bar");
   if (!volumeBar) return;
 
   const maxBars = 100 / VOLUME_STEPS;
   const currentStep = Math.ceil(currentVolume / VOLUME_STEPS);
 
-  volumeBar.classList.add('active');
+  volumeBar.classList.add("active");
   volumeBar.innerHTML = Array.from(
     { length: maxBars },
     (_, index) =>
       `<div class="volume-bar-step ${
-        index < currentStep ? 'active' : ''
-      }"></div>`
-  ).join('');
+        index < currentStep ? "active" : ""
+      }"></div>`,
+  ).join("");
 
-  setTimeout(() => volumeBar.classList.remove('active'), VOLUME_BAR_TIMEOUT);
+  setTimeout(() => volumeBar.classList.remove("active"), VOLUME_BAR_TIMEOUT);
 };
 
 const updateChannelList = (state, channels) => {
-  const channelList = document.querySelector('#channel-list');
+  const channelList = document.querySelector("#channel-list");
   if (!channelList) return;
 
   const channelListItems = channels.map((channel) => {
-    const channelListItem = document.createElement('div');
-    channelListItem.classList.add('channel-list-item');
+    const channelListItem = document.createElement("div");
+    channelListItem.classList.add("channel-list-item");
 
     if (channel.id === state.currentChannel.id) {
-      channelListItem.classList.add('active');
+      channelListItem.classList.add("active");
     }
 
-    channelListItem.innerHTML = `${channel.id.toString().padStart(2, '0')} - ${
+    channelListItem.innerHTML = `${channel.id.toString().padStart(2, "0")} - ${
       channel.name
     }`;
-    channelListItem.addEventListener('click', async () => {
+    channelListItem.addEventListener("click", async () => {
       const { newChannel, newVideo } = await jumpToChannel(state, channel.id);
 
       state.currentChannel = newChannel;
@@ -175,7 +176,7 @@ const updateChannelList = (state, channels) => {
     return channelListItem;
   });
 
-  channelList.innerHTML = '';
+  channelList.innerHTML = "";
   channelList.append(...channelListItems);
 };
 
@@ -199,35 +200,35 @@ const toggleFullscreen = (state) => {
 };
 
 const toggleControlGroup = (isMinimized) => {
-  const controlGroup = document.querySelector('#controls');
+  const controlGroup = document.querySelector("#controls");
   const minimizeIcon = document.querySelector(
-    '#control-minimize .control-icon'
+    "#control-minimize .control-icon",
   );
 
   isMinimized = !isMinimized;
-  controlGroup.classList.toggle('minimized', isMinimized);
+  controlGroup.classList.toggle("minimized", isMinimized);
   minimizeIcon.src = isMinimized ? ICONS.expand : ICONS.contract;
 
   return isMinimized;
 };
 
 const updateChannelName = (channel) => {
-  const channelId = channel.id.toString().padStart(2, '0');
+  const channelId = channel.id.toString().padStart(2, "0");
   const channelName = `${channelId} - ${channel.name}`;
-  const channelNameElement = document.querySelector('#channel-name');
+  const channelNameElement = document.querySelector("#channel-name");
   if (channelNameElement) {
     channelNameElement.innerHTML = channelName;
-    channelNameElement.classList.add('active');
+    channelNameElement.classList.add("active");
 
     setTimeout(() => {
-      channelNameElement.classList.remove('active');
+      channelNameElement.classList.remove("active");
     }, CHANNEL_NAME_TIMEOUT);
   }
 };
 
 const togglePlayPause = (player, isPlaying) => {
   isPlaying ? player.pauseVideo() : player.playVideo();
-  setControlIcon('control-power', ICONS.power, !isPlaying);
+  setControlIcon("control-power", ICONS.power, !isPlaying);
   return !isPlaying;
 };
 
@@ -249,7 +250,7 @@ const cueVideo = (state, video) => {
 const changeChannel = async (state, offset) => {
   const { channels, currentChannel } = state;
   const currentIndex = channels.findIndex(
-    (channel) => channel.id === currentChannel.id
+    (channel) => channel.id === currentChannel.id,
   );
   const newIndex = (currentIndex + offset + channels.length) % channels.length;
   const newChannel = channels[newIndex];
@@ -266,51 +267,50 @@ const jumpToChannel = async (state, channelId) => {
 };
 
 const closeInfoModal = () => {
-  const infoPopup = document.querySelector('#info-modal-container');
-  infoPopup.classList.remove('active');
+  const infoPopup = document.querySelector("#info-modal-container");
+  infoPopup.classList.remove("active");
 };
 
 const toggleInfoModal = () => {
-  const infoPopup = document.querySelector('#info-modal-container');
-  infoPopup.classList.toggle('active');
+  const infoPopup = document.querySelector("#info-modal-container");
+  infoPopup.classList.toggle("active");
 };
 
 const fetchConfig = async () => {
   try {
-    const response = await fetch('/api/config');
+    const response = await fetch("/api/config");
     const data = await response.json();
 
     return data;
   } catch (error) {
-    console.error('Failed to fetch config:', error);
+    console.error("Failed to fetch config:", error);
   }
 };
 
-
-const displayMessage = (message, title = ' ') => {
-  const messageModal = document.querySelector('#message-modal');
-  const messageTitle = document.querySelector('#message-modal-title-content');
+const displayMessage = (message, title = " ") => {
+  const messageModal = document.querySelector("#message-modal");
+  const messageTitle = document.querySelector("#message-modal-title-content");
 
   if (title) {
     messageTitle.innerHTML = title;
   }
 
-  const messageContent = document.querySelector('#message-modal-content');
+  const messageContent = document.querySelector("#message-modal-content");
   messageContent.innerHTML = message;
 
-  messageModal.classList.add('active');
+  messageModal.classList.add("active");
 };
 
 const showWelcomePopup = (editorMode) => {
-  const container = document.querySelector('#welcome-modal-container');
-  container.classList.add('active');
+  const container = document.querySelector("#welcome-modal-container");
+  container.classList.add("active");
 
-  const loadBtn = document.querySelector('#welcome-load-defaults');
-  if (editorMode === 'full') {
-    loadBtn.addEventListener('click', async () => {
+  const loadBtn = document.querySelector("#welcome-load-defaults");
+  if (editorMode === "full") {
+    loadBtn.addEventListener("click", async () => {
       loadBtn.disabled = true;
-      loadBtn.textContent = 'Loading...';
-      const res = await fetch(LOAD_DEFAULTS_ENDPOINT, { method: 'POST' });
+      loadBtn.textContent = "Loading...";
+      const res = await fetch(LOAD_DEFAULTS_ENDPOINT, { method: "POST" });
       const data = await res.json();
       if (data.success) {
         location.reload();
@@ -320,21 +320,21 @@ const showWelcomePopup = (editorMode) => {
     loadBtn.disabled = true;
   }
 
-  const editorBtn = document.querySelector('#welcome-go-editor');
-  const editorNote = document.querySelector('#welcome-editor-note');
-  if (editorMode !== 'off') {
-    editorBtn.addEventListener('click', () => {
-      window.location.href = '/editor/';
+  const editorBtn = document.querySelector("#welcome-go-editor");
+  const editorNote = document.querySelector("#welcome-editor-note");
+  if (editorMode !== "off") {
+    editorBtn.addEventListener("click", () => {
+      window.location.href = "/editor/";
     });
   } else {
     editorBtn.disabled = true;
-    editorNote.style.display = 'block';
+    editorNote.style.display = "block";
   }
 };
 
 const closeMessageModal = () => {
-  const messageModal = document.querySelector('#message-modal');
-  messageModal.classList.remove('active');
+  const messageModal = document.querySelector("#message-modal");
+  messageModal.classList.remove("active");
 };
 
 const addEventListeners = (state) => {
@@ -379,21 +379,21 @@ const addEventListeners = (state) => {
     },
     minimize: () => {
       state.isControlGroupMinimized = toggleControlGroup(
-        state.isControlGroupMinimized
+        state.isControlGroupMinimized,
       );
     },
     info: () => {
       toggleInfoModal();
     },
     settings: () => {
-      window.location.href = '/editor/';
-    }
+      window.location.href = "/editor/";
+    },
   };
 
   for (const [control, handler] of Object.entries(controls)) {
     document
       .querySelector(`#control-${control}`)
-      ?.addEventListener('click', () => {
+      ?.addEventListener("click", () => {
         handler();
         state.isInteracted = true;
       });
@@ -401,28 +401,30 @@ const addEventListeners = (state) => {
 
   // other events
   document
-    .querySelector('#info-modal-close-button')
-    .addEventListener('click', () => {
+    .querySelector("#info-modal-close-button")
+    .addEventListener("click", () => {
       closeInfoModal();
     });
 
   document
-    .querySelector('#message-modal-close-button')
-    .addEventListener('click', () => {
+    .querySelector("#message-modal-close-button")
+    .addEventListener("click", () => {
       closeMessageModal();
     });
 
-  document.querySelector('#video-link').addEventListener('click', () => {
-    window.open(YOUTUBE_BASE_VIDEO_URL + state.currentVideo.id, '_blank');
+  document.querySelector("#video-link").addEventListener("click", () => {
+    window.open(YOUTUBE_BASE_VIDEO_URL + state.currentVideo.id, "_blank");
   });
 
-  document.querySelector('#info-modal-container').addEventListener('click', (event) => {
-    if (event.target === event.currentTarget) closeInfoModal();
-  });
+  document
+    .querySelector("#info-modal-container")
+    .addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) closeInfoModal();
+    });
 
-  document.addEventListener('keydown', (event) => {
+  document.addEventListener("keydown", (event) => {
     switch (event.key) {
-      case 'ArrowLeft':
+      case "ArrowLeft":
         // Change to the previous channel
         changeChannel(state, -1).then(({ newChannel, newVideo }) => {
           state.currentChannel = newChannel;
@@ -431,7 +433,7 @@ const addEventListeners = (state) => {
         });
         break;
 
-      case 'ArrowRight':
+      case "ArrowRight":
         // Change to the next channel
         changeChannel(state, 1).then(({ newChannel, newVideo }) => {
           state.currentChannel = newChannel;
@@ -440,7 +442,7 @@ const addEventListeners = (state) => {
         });
         break;
 
-      case 'ArrowUp':
+      case "ArrowUp":
         // Increase volume
         const currentVolume = state.player.getVolume();
         const newVolumeUp = Math.min(currentVolume + VOLUME_STEPS, 100);
@@ -450,7 +452,7 @@ const addEventListeners = (state) => {
         state.isMuted = false;
         break;
 
-      case 'ArrowDown':
+      case "ArrowDown":
         // Decrease volume
         const currentVolumeDown = state.player.getVolume();
         const newVolumeDown = Math.max(currentVolumeDown - VOLUME_STEPS, 0);
@@ -460,20 +462,27 @@ const addEventListeners = (state) => {
         state.isMuted = false;
         break;
 
-      case 'm':
+      case "Enter":
         // Control mute
         state.isMuted = toggleMute(state.player, state.isMuted);
         break;
 
-      case ' ':
+      case "0":
+        window.location.href = "/";
+        break;
+
+      case " ":
         // Toggle power (play/pause)
         event.preventDefault(); // Prevent scrolling when pressing space
         state.isPlaying = togglePlayPause(state.player, state.isPlaying);
         break;
+
+      default:
+        console.log(event.key);
     }
   });
 
-  document.addEventListener('DOMContentLoaded', fetchConfig);
+  document.addEventListener("DOMContentLoaded", fetchConfig);
 };
 
 const initApp = async (playerElementId) => {
@@ -481,14 +490,14 @@ const initApp = async (playerElementId) => {
 
   if (channels.length === 0) {
     const config = await fetchConfig();
-    if (config?.editorMode && config.editorMode !== 'off') {
-      const settingsBtn = document.querySelector('#control-settings');
-      settingsBtn.style.display = '';
-      settingsBtn.addEventListener('click', () => {
-        window.location.href = '/editor/';
+    if (config?.editorMode && config.editorMode !== "off") {
+      const settingsBtn = document.querySelector("#control-settings");
+      settingsBtn.style.display = "";
+      settingsBtn.addEventListener("click", () => {
+        window.location.href = "/editor/";
       });
     }
-    showWelcomePopup(config?.editorMode || 'off');
+    showWelcomePopup(config?.editorMode || "off");
     return;
   }
 
@@ -504,15 +513,15 @@ const initApp = async (playerElementId) => {
     currentVideo: null,
     channels,
     isInteracted: false,
-    currentVideoName: '',
+    currentVideoName: "",
     videoCheckIntervalId: null,
   };
 
   addEventListeners(state);
   fetchConfig().then((config) => {
     state.editorMode = config.editorMode;
-    if (config.editorMode && config.editorMode !== 'off') {
-      document.querySelector('#control-settings').style.display = '';
+    if (config.editorMode && config.editorMode !== "off") {
+      document.querySelector("#control-settings").style.display = "";
     }
   });
 
@@ -523,7 +532,7 @@ const initApp = async (playerElementId) => {
       if (videoId) {
         state.player.cueVideoById({
           videoId,
-          startSeconds: initialVideo.sectionStart
+          startSeconds: initialVideo.sectionStart,
         });
         state.player.playVideo();
         state.currentVideo = initialVideo;
@@ -540,7 +549,7 @@ const initApp = async (playerElementId) => {
     updateChannelList(state, channels);
 
     if (state.isMuted) {
-      setControlIcon('control-mute', ICONS.volume_muted, true);
+      setControlIcon("control-mute", ICONS.volume_muted, true);
     }
 
     if (
@@ -574,7 +583,7 @@ const initApp = async (playerElementId) => {
     } else {
       showBuffering();
 
-      setControlIcon('control-power', ICONS.power, true);
+      setControlIcon("control-power", ICONS.power, true);
     }
   };
 
@@ -582,22 +591,22 @@ const initApp = async (playerElementId) => {
     switch (errorCode) {
       case 100:
         console.error(
-          'Error code:',
+          "Error code:",
           errorCode,
-          'Video is unavailable: removed or marked as private.'
+          "Video is unavailable: removed or marked as private.",
         );
         handleUnavailableVideo(state);
         break;
       case 101:
       case 150:
-        console.error('Error code:', errorCode, 'Video cannot be embedded.');
+        console.error("Error code:", errorCode, "Video cannot be embedded.");
         handleUnavailableVideo(state);
         break;
       default:
         console.error(
-          'Error code:',
+          "Error code:",
           errorCode,
-          'An unknown error occurred with the video.'
+          "An unknown error occurred with the video.",
         );
     }
   };
@@ -607,9 +616,9 @@ const initApp = async (playerElementId) => {
       playerElementId,
       onReady,
       onStateChange,
-      onError
+      onError,
     );
   });
 };
 
-initApp('player');
+initApp("player");
